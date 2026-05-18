@@ -20,8 +20,8 @@ jobs:
 
       - name: Test UltraLockedFormat
         run: |
-          swift test --package-path UltraLockedFormat --enable-code-coverage
-          PACKAGE_COVERAGE_JSON="$(swift test --package-path UltraLockedFormat --show-codecov-path)"
+          swift test --enable-code-coverage
+          PACKAGE_COVERAGE_JSON="$(swift test --show-codecov-path)"
           python3 - "$PACKAGE_COVERAGE_JSON" <<'PY'
           import json
           import sys

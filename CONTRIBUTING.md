@@ -16,5 +16,5 @@ small so reviewers can audit the security core without unrelated product code.
 Before opening a pull request, run:
 
 ```bash
-swift test --package-path UltraLockedFormat --enable-code-coverage
+swift test --enable-code-coverage
 ```

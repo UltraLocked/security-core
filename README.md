@@ -10,8 +10,8 @@ the written security model.
 
 ## What Is Included
 
-- `UltraLockedFormat/`: Swift package for `.ultralocked` encrypted export
-  bundles.
+- `Sources/UltraLockedFormat/`: Swift package source for `.ultralocked`
+  encrypted export bundles.
 - `docs/`: threat model, format notes, security architecture, and non-goals.
 - GitHub Actions workflow for Swift package tests.
 
@@ -35,16 +35,15 @@ constructed, how malformed input is rejected, and how tampering is detected.
 Run the Swift package tests:
 
 ```bash
-swift test --package-path UltraLockedFormat --enable-code-coverage
+swift test --enable-code-coverage
 ```
 
 ## License
 
 This repository is licensed under Apache-2.0.
 
-The vendored Argon2 reference implementation in
-`UltraLockedFormat/Sources/CArgon2` is dual licensed Apache-2.0 OR CC0-1.0 by
-its upstream authors.
+The vendored Argon2 reference implementation in `Sources/CArgon2` is dual
+licensed Apache-2.0 OR CC0-1.0 by its upstream authors.
 
 ## Security Reports
 
