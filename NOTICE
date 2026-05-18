@@ -1,0 +1,9 @@
+UltraLocked Security Core
+Copyright 2026 UltraLocked
+
+This repository contains the open security-critical components for the
+UltraLocked commercial iOS application.
+
+The vendored CArgon2 target is derived from the Password Hashing Competition
+Argon2 reference implementation, pinned to the 20190702 release. Its upstream
+license is Apache-2.0 OR CC0-1.0. See UltraLockedFormat/Sources/CArgon2/LICENSE.

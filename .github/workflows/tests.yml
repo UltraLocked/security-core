@@ -1,0 +1,36 @@
+name: Security Core Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  swift-package:
+    name: UltraLockedFormat
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Test UltraLockedFormat
+        run: |
+          swift test --package-path UltraLockedFormat --enable-code-coverage
+          PACKAGE_COVERAGE_JSON="$(swift test --package-path UltraLockedFormat --show-codecov-path)"
+          python3 - "$PACKAGE_COVERAGE_JSON" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              report = json.load(handle)
+
+          line_percent = report["data"][0]["totals"]["lines"]["percent"]
+          print(f"UltraLockedFormat line coverage: {line_percent:.2f}%")
+          if line_percent < 95:
+              raise SystemExit("UltraLockedFormat line coverage is below the 95% gate")
+          PY
