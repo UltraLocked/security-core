@@ -30,6 +30,11 @@ Users should not need to trust marketing copy to evaluate core security claims.
 The code in this repository lets reviewers inspect how export bundles are
 constructed, how malformed input is rejected, and how tampering is detected.
 
+## Related Documentation
+
+- Security white paper: https://github.com/UltraLocked/whitepaper
+- Product website: https://ultralocked.com
+
 ## Quick Start
 
 Run the Swift package tests:
