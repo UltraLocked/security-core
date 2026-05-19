@@ -57,13 +57,20 @@ final class CompatibilityAndMalformedBundleTests: XCTestCase {
         corruptMagic[0] ^= 0xFF
 
         var corruptVersion = valid
-        corruptVersion[4] = 0xFF
+        corruptVersion[8] = 0xFF
+
+        var undersizedManifest = valid
+        undersizedManifest[48] = UInt8(BundleLimits.manifestSizeMin - 1)
+        undersizedManifest[49] = 0
+        undersizedManifest[50] = 0
+        undersizedManifest[51] = 0
 
         let corpus: [Data] = [
             Data(),
             Data(repeating: 0, count: BundleHeader.totalSize - 1),
             corruptMagic,
             corruptVersion,
+            undersizedManifest,
             truncatedManifest
         ]
 

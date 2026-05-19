@@ -23,8 +23,16 @@ public enum BundleLimits {
 
     // MARK: Sizes
 
+    /// Minimum length of an encrypted manifest block, in bytes. AES-GCM always
+    /// contributes a 16-byte authentication tag, even for empty plaintext.
+    public static let manifestSizeMin: UInt32 = 16
+
     /// Maximum length of the encrypted manifest, in bytes (1 MiB).
     public static let manifestSizeMax: UInt32 = 1 * 1024 * 1024
+
+    /// Minimum length of any single encrypted item record, in bytes. AES-GCM
+    /// records are `ciphertext || tag`, so empty plaintext is still 16 bytes.
+    public static let itemSizeMin: UInt64 = 16
 
     /// Maximum length of any single encrypted item record, in bytes (250 MiB).
     public static let itemSizeMax: UInt64 = 250 * 1024 * 1024
@@ -53,12 +61,22 @@ public enum BundleLimits {
     }
 
     public static func validateManifestSize(_ size: UInt32) throws {
-        guard size <= manifestSizeMax else {
+        try validateManifestSize(UInt64(size))
+    }
+
+    public static func validateManifestSize(_ size: UInt64) throws {
+        guard size >= UInt64(manifestSizeMin) else {
+            throw BundleError.parameterOutOfBounds("manifest_size \(size) < min \(manifestSizeMin)")
+        }
+        guard size <= UInt64(manifestSizeMax) else {
             throw BundleError.parameterOutOfBounds("manifest_size \(size) > max \(manifestSizeMax)")
         }
     }
 
     public static func validateItemSize(_ size: UInt64) throws {
+        guard size >= itemSizeMin else {
+            throw BundleError.parameterOutOfBounds("item_size \(size) < min \(itemSizeMin)")
+        }
         guard size <= itemSizeMax else {
             throw BundleError.parameterOutOfBounds("item_size \(size) > max \(itemSizeMax)")
         }

@@ -129,6 +129,10 @@ public struct BundleHeader: Equatable {
         let salt = data.subdata(in: 20..<36)
         let manifestNonce = data.subdata(in: 36..<48)
         let manifestSize: UInt32 = data.readLittleEndian(at: 48)
+        let reserved = data.subdata(in: 52..<Self.totalSize)
+        guard reserved.allSatisfy({ $0 == 0 }) else {
+            throw BundleError.invalidHeader("reserved bytes must be zero")
+        }
 
         return try BundleHeader(
             version: version,

@@ -47,6 +47,14 @@ final class BundleLimitsTests: XCTestCase {
         XCTAssertNoThrow(try BundleLimits.validateManifestSize(BundleLimits.manifestSizeMax))
     }
 
+    func testManifestSizeAtMin() throws {
+        XCTAssertNoThrow(try BundleLimits.validateManifestSize(BundleLimits.manifestSizeMin))
+    }
+
+    func testManifestSizeBelowMin() {
+        XCTAssertThrowsError(try BundleLimits.validateManifestSize(BundleLimits.manifestSizeMin - 1))
+    }
+
     func testManifestSizeAboveMax() {
         XCTAssertThrowsError(try BundleLimits.validateManifestSize(BundleLimits.manifestSizeMax + 1))
     }
@@ -55,6 +63,14 @@ final class BundleLimitsTests: XCTestCase {
 
     func testItemSizeAtMax() throws {
         XCTAssertNoThrow(try BundleLimits.validateItemSize(BundleLimits.itemSizeMax))
+    }
+
+    func testItemSizeAtMin() throws {
+        XCTAssertNoThrow(try BundleLimits.validateItemSize(BundleLimits.itemSizeMin))
+    }
+
+    func testItemSizeBelowMin() {
+        XCTAssertThrowsError(try BundleLimits.validateItemSize(BundleLimits.itemSizeMin - 1))
     }
 
     func testItemSizeAboveMax() {
@@ -77,7 +93,9 @@ final class BundleLimitsTests: XCTestCase {
         XCTAssertEqual(BundleLimits.argon2TimeCostMax, 10)
         XCTAssertEqual(BundleLimits.argon2MemoryKiBMax, 262144)
         XCTAssertEqual(BundleLimits.argon2ParallelismMax, 8)
+        XCTAssertEqual(BundleLimits.manifestSizeMin, 16)
         XCTAssertEqual(BundleLimits.manifestSizeMax, 1 * 1024 * 1024)
+        XCTAssertEqual(BundleLimits.itemSizeMin, 16)
         XCTAssertEqual(BundleLimits.itemSizeMax, 250 * 1024 * 1024)
         XCTAssertEqual(BundleLimits.totalFileSizeMax, 2 * 1024 * 1024 * 1024)
     }

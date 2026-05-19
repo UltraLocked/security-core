@@ -45,7 +45,8 @@ Reviewers should focus on:
 - Whether malformed bundles fail closed.
 - Whether tampering with header, manifest, item ciphertext, item nonce, item id,
   or auth tag is detected.
-- Whether parser bounds prevent malicious resource exhaustion.
+- Whether parser bounds prevent malformed encrypted blocks and malicious resource
+  exhaustion.
 - Whether test vectors remain stable across releases.
 
 ## Important Limitations

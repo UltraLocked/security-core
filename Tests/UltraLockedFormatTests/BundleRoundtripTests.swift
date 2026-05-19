@@ -79,6 +79,33 @@ final class BundleRoundtripTests: XCTestCase {
         XCTAssertEqual(decrypted, plaintext)
     }
 
+    func testDecryptUsesCanonicalManifestDescriptor() throws {
+        let plaintext = Data("canonical descriptor wins".utf8)
+        let content = makeContent(name: "canonical.txt", mimeType: "text/plain", bytes: plaintext)
+
+        let b = builder()
+        b.add(content)
+        let bytes = try b.build(masterKey: fixedMasterKey(), salt: fixedSalt(), manifestNonce: fixedManifestNonce())
+
+        let parser = try BundleParser(data: bytes)
+        let manifest = try parser.unlock(masterKey: fixedMasterKey())
+        let descriptor = manifest.items[0]
+        let callerSuppliedDescriptor = try ItemDescriptor(
+            id: descriptor.id,
+            name: descriptor.name,
+            mimeType: descriptor.mimeType,
+            sizeBytes: descriptor.sizeBytes,
+            createdAt: descriptor.createdAt,
+            modifiedAt: descriptor.modifiedAt,
+            ttlSeconds: descriptor.ttlSeconds,
+            ttlOriginEpoch: descriptor.ttlOriginEpoch,
+            itemNonce: Data(repeating: 0xEE, count: 12),
+            itemSize: BundleLimits.itemSizeMin
+        )
+
+        XCTAssertEqual(try parser.decrypt(item: callerSuppliedDescriptor), plaintext)
+    }
+
     // MARK: Multiple items
 
     func testMultipleItemsRoundtripPreservesOrder() throws {

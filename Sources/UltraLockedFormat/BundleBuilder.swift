@@ -66,7 +66,7 @@ public final class BundleBuilder {
         var descriptors: [ItemDescriptor] = []
         for item in items {
             let nonce = Random.bytes(12)
-            let itemSize = UInt64(item.plaintext.count + ItemRecord.tagSize)
+            let itemSize = UInt64(item.plaintext.count) + UInt64(ItemRecord.tagSize)
             try BundleLimits.validateItemSize(itemSize)
             let descriptor = try ItemDescriptor(
                 id: item.id,
@@ -91,8 +91,8 @@ public final class BundleBuilder {
             items: descriptors
         )
         let manifestPlaintext = try manifest.encodeJSON()
-        let manifestCiphertextSize = manifestPlaintext.count + ItemRecord.tagSize
-        try BundleLimits.validateManifestSize(UInt32(manifestCiphertextSize))
+        let manifestCiphertextSize = UInt64(manifestPlaintext.count) + UInt64(ItemRecord.tagSize)
+        try BundleLimits.validateManifestSize(manifestCiphertextSize)
 
         // 3. Construct the public header now that manifest_size is known.
         let header = try BundleHeader(
@@ -112,13 +112,13 @@ public final class BundleBuilder {
             headerAAD: headerBytes
         )
         precondition(
-            manifestEncrypted.ciphertext.count + manifestEncrypted.tag.count == manifestCiphertextSize,
+            UInt64(manifestEncrypted.ciphertext.count + manifestEncrypted.tag.count) == manifestCiphertextSize,
             "manifest ciphertext+tag size mismatch"
         )
 
         // 5. Encrypt each item with (header || item_id) as AAD.
         var itemRecords: [Data] = []
-        var totalItemBytes = 0
+        var totalItemBytes: UInt64 = 0
         for (i, item) in items.enumerated() {
             let record = try ItemRecord.encrypt(
                 plaintext: item.plaintext,
@@ -132,12 +132,13 @@ public final class BundleBuilder {
                 "item record size mismatch for \(item.id)"
             )
             itemRecords.append(record)
-            totalItemBytes += record.count
+            totalItemBytes += UInt64(record.count)
         }
 
         // 6. Concatenate: [header][manifest_ciphertext][manifest_tag][item_records...]
-        let totalSize = BundleHeader.totalSize + manifestCiphertextSize + totalItemBytes
-        try BundleLimits.validateTotalFileSize(UInt64(totalSize))
+        let totalSize64 = UInt64(BundleHeader.totalSize) + manifestCiphertextSize + totalItemBytes
+        try BundleLimits.validateTotalFileSize(totalSize64)
+        let totalSize = Int(totalSize64)
 
         var output = Data(capacity: totalSize)
         output.append(headerBytes)

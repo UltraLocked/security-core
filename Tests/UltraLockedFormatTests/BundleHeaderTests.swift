@@ -100,6 +100,27 @@ final class BundleHeaderTests: XCTestCase {
         }
     }
 
+    func testManifestSizeBelowMinimumRejected() throws {
+        XCTAssertThrowsError(try validHeader(manifestSize: BundleLimits.manifestSizeMin - 1)) { error in
+            guard case .parameterOutOfBounds = error as? BundleError else {
+                XCTFail("expected parameterOutOfBounds, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testReservedBytesMustBeZero() throws {
+        let header = try validHeader()
+        var bytes = header.serialize()
+        bytes[52] = 0x01
+        XCTAssertThrowsError(try BundleHeader.parse(bytes)) { error in
+            guard case .invalidHeader = error as? BundleError else {
+                XCTFail("expected invalidHeader, got \(error)")
+                return
+            }
+        }
+    }
+
     func testInvalidSaltSizeRejected() throws {
         XCTAssertThrowsError(try BundleHeader(
             argon2TimeCost: 3,

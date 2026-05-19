@@ -63,8 +63,8 @@ Parser limits bound attacker-controlled KDF parameters before expensive work:
 time_cost: 1...10
 memory_kib: 8...262144
 parallelism: 1...8
-manifest_size: <= 1 MiB
-item_size: <= 250 MiB
+manifest_size: 16 bytes...1 MiB
+item_size: 16 bytes...250 MiB
 total_file_size: <= 2 GiB
 ```
 
@@ -132,6 +132,7 @@ The parser should fail closed for:
 - unsupported KDF id
 - out-of-range KDF parameters
 - truncated header, manifest, or item records
+- undersized encrypted manifest or item records
 - oversized manifest, item, or full bundle
 - duplicate item ids
 - inconsistent TTL fields

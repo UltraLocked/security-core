@@ -64,8 +64,9 @@ public final class BundleParser {
         try unlockWithKey(key)
     }
 
-    /// Decrypt a single item by its descriptor. Requires `unlock(...)` to have been
-    /// called first; throws otherwise.
+    /// Decrypt a single item by descriptor id. Requires `unlock(...)` to have been
+    /// called first; throws otherwise. The canonical descriptor is resolved from the
+    /// unlocked manifest, so caller-supplied nonce and size fields are not trusted.
     ///
     /// Items can be decrypted in any order, lazily, so a UI can let the user choose
     /// which to import without paying for the full payload upfront.
@@ -76,13 +77,14 @@ public final class BundleParser {
         guard let index = manifest.items.firstIndex(where: { $0.id == item.id }) else {
             throw BundleError.manifestParseFailed("item \(item.id) is not in this bundle's manifest")
         }
+        let descriptor = manifest.items[index]
 
         // Compute the byte offset of the requested item by accumulating preceding item sizes.
         var offset = BundleHeader.totalSize + Int(header.manifestSize)
         for i in 0..<index {
             offset += Int(manifest.items[i].itemSize)
         }
-        let recordEnd = offset + Int(item.itemSize)
+        let recordEnd = offset + Int(descriptor.itemSize)
         guard data.count >= recordEnd else {
             throw BundleError.truncated(expected: recordEnd, actual: data.count)
         }
@@ -91,8 +93,8 @@ public final class BundleParser {
         return try ItemRecord.decrypt(
             record: record,
             masterKey: key,
-            itemID: item.id,
-            nonce: item.itemNonce,
+            itemID: descriptor.id,
+            nonce: descriptor.itemNonce,
             headerAAD: headerBytes
         )
     }
@@ -112,6 +114,9 @@ public final class BundleParser {
         let manifestBytes = data.subdata(in: manifestStart..<manifestEnd)
 
         // [Encrypted Manifest] = ciphertext || tag (16-byte tag at the end).
+        guard manifestBytes.count >= ItemRecord.tagSize else {
+            throw BundleError.truncated(expected: ItemRecord.tagSize, actual: manifestBytes.count)
+        }
         let tagOffset = manifestBytes.count - ItemRecord.tagSize
         let ciphertext = manifestBytes.subdata(in: 0..<tagOffset)
         let tag = manifestBytes.subdata(in: tagOffset..<manifestBytes.count)
@@ -125,8 +130,8 @@ public final class BundleParser {
         )
 
         // Sanity: descriptor item sizes must sum to no more than remaining file bytes.
-        let itemsByteBudget = data.count - manifestEnd
-        let totalItemBytes = manifest.items.reduce(0) { $0 + Int($1.itemSize) }
+        let itemsByteBudget = UInt64(data.count - manifestEnd)
+        let totalItemBytes = manifest.items.reduce(UInt64(0)) { $0 + $1.itemSize }
         guard totalItemBytes <= itemsByteBudget else {
             throw BundleError.manifestParseFailed(
                 "manifest item sizes (\(totalItemBytes)) exceed file space (\(itemsByteBudget))"
